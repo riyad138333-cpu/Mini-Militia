@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#07050f">
+<title>Mini Militia — Solo Arena</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="game-wrap">
+  <canvas id="gameCanvas" width="1280" height="720"></canvas>
+
+  <!-- ===================== IN-GAME HUD ===================== -->
+  <div id="hud" class="hidden">
+    <div class="hud-top">
+      <div class="player-card panel">
+        <div class="player-avatar">YOU</div>
+        <div class="player-vitals">
+          <div class="vital-row">
+            <span class="vital-label">HP</span>
+            <div class="bar health-bar">
+              <div id="healthFill" class="fill health-fill"></div>
+              <span id="healthText" class="bar-text">100</span>
+            </div>
+          </div>
+          <div class="vital-row">
+            <span class="vital-label">JET</span>
+            <div class="bar fuel-bar">
+              <div id="fuelFill" class="fill fuel-fill"></div>
+              <span id="fuelText" class="bar-text fuel-text">100</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="match-card panel">
+        <div class="match-kicker" id="matchKicker">SOLO DEATHMATCH · RUST BASIN</div>
+        <div class="match-timer" id="matchTimer">4:00</div>
+        <div class="match-sub">FIRST TO <b id="scoreGoal">20</b> KILLS</div>
+      </div>
+
+      <div class="scoreboard panel">
+        <div class="scoreboard-title"><span>SCOREBOARD</span><span class="live-dot"></span></div>
+        <div id="scoreRows"></div>
+      </div>
+    </div>
+
+    <div id="killFeed"></div>
+
+    <div id="weaponPanel" class="panel">
+      <div class="weapon-slots">
+        <div class="slot active" id="slot1"><span class="slot-key">1</span><span class="slot-name" id="slot1Name">PISTOL</span></div>
+        <div class="slot empty" id="slot2"><span class="slot-key">2</span><span class="slot-name" id="slot2Name">EMPTY</span></div>
+      </div>
+      <div class="weapon-main">
+        <div class="weapon-icon" id="weaponIcon"><span></span></div>
+        <div class="weapon-info">
+          <div class="weapon-name" id="weaponName">PISTOL</div>
+          <div class="ammo-line"><span id="weaponMag">12</span><span class="ammo-reserve">/ ∞</span></div>
+        </div>
+      </div>
+      <div class="reload-track"><div id="reloadFill"></div></div>
+      <div class="weapon-hint" id="weaponHint">R RELOAD · Q SWAP · F PUNCH</div>
+    </div>
+
+    <div id="respawnPanel" class="hidden">
+      <div class="respawn-label">REDEPLOYING</div>
+      <div class="respawn-timer" id="respawnTimer">3</div>
+      <div class="respawn-sub">STAY SHARP</div>
+    </div>
+
+    <div id="announce" class="announce">
+      <div class="announce-main" id="announceMain"></div>
+      <div class="announce-sub" id="announceSub"></div>
+    </div>
+
+    <div id="lowHealthVignette"></div>
+    <div id="hurtVignette"></div>
+    <div class="hud-hint">SPACE JETPACK · WASD MOVE · MOUSE AIM · CLICK FIRE · P PAUSE</div>
+  </div>
+
+  <!-- ===================== START SCREEN ===================== -->
+  <div id="startScreen" class="overlay">
+    <div class="menu-bg-grid"></div>
+    <div class="start-inner">
+      <div class="brand">
+        <div class="brand-kicker"><span class="live-dot"></span> SINGLE PLAYER · AI DEATHMATCH</div>
+        <h1 class="brand-title">MINI<span>MILITIA</span></h1>
+        <div class="brand-sub">SOLO ARENA</div>
+      </div>
+      <p class="tagline">Strap in. Five hostile bots. One arena.<br><b>No teammates. No mercy.</b></p>
+
+      <!-- ================= MAP SELECTOR CAROUSEL ================= -->
+      <div class="map-select-section" id="mapSelectSection">
+        <div class="map-header">
+          <div class="map-header-left">
+            <span class="map-kicker"><span class="pulse-dot"></span> OPERATIONAL THEATERS</span>
+            <span class="map-header-title">SELECT COMBAT ZONE</span>
+          </div>
+          <div class="map-header-right">
+            <span class="map-badge-active">2 ACTIVE</span>
+            <span class="map-badge-soon">5 COMING SOON</span>
+          </div>
+        </div>
+
+        <div class="map-carousel-wrapper">
+          <button type="button" class="map-nav-btn prev" id="mapPrevBtn" aria-label="Previous map">‹</button>
+          <div class="map-cards-container" id="mapCardsTrack" role="region" aria-label="Available and upcoming maps">
+            <!-- Populated dynamically by initMapSelector() -->
+          </div>
+          <button type="button" class="map-nav-btn next" id="mapNextBtn" aria-label="Next map">›</button>
+        </div>
+
+        <!-- Tactical Briefing Panel -->
+        <div class="map-preview-panel" id="mapPreviewPanel">
+          <!-- Populated dynamically by selectMap() -->
+        </div>
+
+        <!-- Alert Notification for Coming Soon Maps -->
+        <div class="map-alert-toast hidden" id="mapAlertToast" role="alert"></div>
+      </div>
+
+      <div class="difficulty">
+        <div class="diff-label">BOT DIFFICULTY</div>
+        <div class="diff-options" id="difficultyOptions">
+          <button class="diff-btn" data-diff="rookie">ROOKIE<small>Slow reflexes</small></button>
+          <button class="diff-btn active" data-diff="regular">REGULAR<small>Fair fight</small></button>
+          <button class="diff-btn" data-diff="veteran">VETERAN<small>Sharp shooters</small></button>
+        </div>
+      </div>
+
+      <button id="playBtn" class="btn-primary">DEPLOY: <span id="deployMapLabel">RUST BASIN</span> <span>▶</span></button>
+
+      <div class="start-controls">
+        <div class="ctrl"><kbd>WASD</kbd><span>Move</span></div>
+        <div class="ctrl"><kbd>MOUSE</kbd><span>Aim</span></div>
+        <div class="ctrl"><kbd>CLICK</kbd><span>Fire</span></div>
+        <div class="ctrl"><kbd>SPACE</kbd><span>Jetpack</span></div>
+        <div class="ctrl"><kbd>R</kbd><span>Reload</span></div>
+        <div class="ctrl"><kbd>Q</kbd><span>Swap</span></div>
+        <div class="ctrl"><kbd>F</kbd><span>Punch</span></div>
+        <div class="ctrl"><kbd>ESC / P</kbd><span>Pause</span></div>
+      </div>
+
+      <div class="start-footer">
+        <button id="fullscreenBtn" class="sound-btn">FULLSCREEN</button>
+        <button id="soundBtnStart" class="sound-btn">SOUND: ON</button>
+        <span id="bestStat" class="best-stat"></span>
+        <span class="foot-note">TOUCH CONTROLS SUPPORTED</span>
+      </div>
+    </div>
+    <div class="corner-tag">NO INTERNET REQUIRED</div>
+  </div>
+
+  <!-- ===================== PAUSE ===================== -->
+  <div id="pauseScreen" class="overlay hidden">
+    <div class="menu-card">
+      <div class="kicker" id="pauseKicker">MATCH PAUSED · RUST BASIN</div>
+      <h2 class="menu-title">HOLD POSITION</h2>
+      <p class="menu-sub">Take a breath. The bots can wait.</p>
+      <div class="menu-stats" id="pauseStats"></div>
+      <button id="resumeBtn" class="btn-primary">RESUME</button>
+      <div class="btn-row">
+        <button id="restartBtn" class="btn-ghost">RESTART</button>
+        <button id="quitBtn" class="btn-ghost">MAIN MENU</button>
+      </div>
+      <div class="menu-footer">
+        <button id="fullscreenBtnPause" class="sound-btn">FULLSCREEN</button>
+        <button id="soundBtnPause" class="sound-btn">SOUND: ON</button>
+        <span>ESC / P TO RESUME</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== END ===================== -->
+  <div id="endScreen" class="overlay hidden">
+    <div class="menu-card end-card">
+      <div class="kicker" id="endKicker">MATCH COMPLETE</div>
+      <h2 class="menu-title" id="endTitle">VICTORY</h2>
+      <p class="menu-sub" id="endSub"></p>
+      <div class="end-stats" id="endStats"></div>
+      <div class="end-table" id="endTable"></div>
+      <button id="againBtn" class="btn-primary">PLAY AGAIN</button>
+      <button id="menuBtn" class="btn-ghost wide">MAIN MENU</button>
+    </div>
+  </div>
+
+  <!-- ===================== TOUCH CONTROLS ===================== -->
+  <div id="mobileControls" class="hidden">
+    <div class="stick-zone left-zone">
+      <div class="stick-base" id="moveStick"><div class="stick-ring"></div><div class="stick-knob" id="moveKnob">✥</div></div>
+    </div>
+    <div class="stick-zone right-zone">
+      <div class="stick-base aim-base" id="aimStick"><div class="stick-ring"></div><div class="stick-knob aim-knob" id="aimKnob">◎</div></div>
+    </div>
+    <button id="btnJet" class="touch-btn jet-btn">JET</button>
+    <button id="btnMelee" class="touch-btn small-btn">PUNCH</button>
+    <button id="btnReload" class="touch-btn small-btn">R</button>
+    <button id="btnSwap" class="touch-btn small-btn">Q</button>
+    <button id="btnPauseMobile" class="touch-btn pause-mobile">II</button>
+  </div>
+
+  <div id="rotateHint">
+    <div class="rotate-icon">⟳</div>
+    <div>ROTATE YOUR DEVICE</div>
+    <span>This arena is best in landscape</span>
+  </div>
+</div>
+
+<script src="js/utils.js"></script>
+<script src="js/level.js"></script>
+<script src="js/weapons.js"></script>
+<script src="js/entities.js"></script>
+<script src="js/game.js"></script>
+</body>
+</html>
