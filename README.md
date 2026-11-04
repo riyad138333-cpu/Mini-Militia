@@ -1,6 +1,10 @@
 # Mini Militia — Solo Arena 💥
 
+[![Play Online](https://img.shields.io/badge/PLAY%20LIVE-GitHub%20Pages-brightgreen?style=for-the-badge&logo=github)](https://riyad138333-cpu.github.io/Mini-Militia/)
+
 A fast-paced, browser-based 2D action shooter inspired by the classic **Doodle Army 2: Mini Militia**. Built from scratch with pure HTML5 Canvas, vanilla JavaScript, and Web Audio API — zero build tools, zero external dependencies, and 100% offline capable.
+
+🎮 **Play directly in your browser:** [https://riyad138333-cpu.github.io/Mini-Militia/](https://riyad138333-cpu.github.io/Mini-Militia/)
 
 [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Pure Vanilla JS](https://img.shields.io/badge/stack-Vanilla%20JS%20%7C%20HTML5%20Canvas-f7df1e.svg)](index.html)
